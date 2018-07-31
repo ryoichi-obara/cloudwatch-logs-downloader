@@ -11,9 +11,9 @@ const region = process.env.REGION;
 const tz = process.env.TIMEZONE;
 const filename = process.env.OUTPUT_LOG_FILENAME;
 
-// For devlocal
-const credentials = new AWS.SharedIniFileCredentials({ profile });
-AWS.config.credentials = credentials;
+if (profile) {
+  AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile });
+}
 
 const cloudwatchlogs = new AWS.CloudWatchLogs({ region });
 
