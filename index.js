@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
+const { promisify } = require('util');
 const moment = require('moment-timezone');
 
 require('dotenv').config();
@@ -17,18 +18,21 @@ if (profile) {
 
 const cloudwatchlogs = new AWS.CloudWatchLogs({ region });
 
-cloudwatchlogs.describeLogStreams({ logGroupName }, (err, res) => {
-  // console.log(res);
+const appendFile = async (timestamp, message) => {
+  const datetime = moment(timestamp).tz(tz).format('YYYY-MM-DD HH:mm:ss');
+  return promisify(fs.appendFile)(path.join(__dirname, filename), `${datetime} ${message}`);
+};
 
-  for (const logStream of res.logStreams) {
-    console.log(logStream.logStreamName);
+const fileoutLogs = async (logStreamName) => {
+  const logEvents = await cloudwatchlogs.getLogEvents({ logGroupName, logStreamName }).promise();
+  return Promise.all(
+    logEvents.events.map(event => appendFile(event.timestamp, event.message)),
+  );
+};
 
-    cloudwatchlogs.getLogEvents({ logGroupName, logStreamName: logStream.logStreamName }, (error, events) => {
-      for (const event of events.events) {
-        const datetime = moment(event.timestamp).tz(tz).format('YYYY-MM-DD HH:mm:ss');
-        // console.log(`${datetime} ${event.message}`);
-        fs.appendFileSync(path.join(__dirname, filename), `${datetime} ${event.message}`);
-      }
-    });
-  }
-});
+(async () => {
+  const res = await cloudwatchlogs.describeLogStreams({ logGroupName }).promise();
+  await Promise.all(
+    res.logStreams.map(logStream => fileoutLogs(logStream.logStreamName)),
+  );
+})();
