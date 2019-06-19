@@ -24,15 +24,32 @@ const appendFile = async (timestamp, message) => {
 };
 
 const fileoutLogs = async (logStreamName) => {
-  const logEvents = await cloudwatchlogs.getLogEvents({ logGroupName, logStreamName }).promise();
-  return Promise.all(
-    logEvents.events.map(event => appendFile(event.timestamp, event.message)),
-  );
+  let nextToken;
+  do {
+    const logEvents = await cloudwatchlogs.getLogEvents({ logGroupName, logStreamName, nextToken }).promise();
+    console.log(logEvents.nextForwardToken);
+    await Promise.all(
+      logEvents.events.map(event => appendFile(event.timestamp, event.message)),
+    );
+    if (nextToken && nextToken !== logEvents.nextForwardToken) {
+      nextToken = logEvents.nextForwardToken;
+    } else {
+      break;
+    }
+  } while (true);
 };
 
 (async () => {
-  const res = await cloudwatchlogs.describeLogStreams({ logGroupName }).promise();
-  await Promise.all(
-    res.logStreams.map(logStream => fileoutLogs(logStream.logStreamName)),
-  );
+  let nextToken;
+  do {
+    const res = await cloudwatchlogs.describeLogStreams({ logGroupName, nextToken }).promise();
+    console.log(`--- ${res.nextToken}`);
+    await Promise.all(
+      res.logStreams.map(logStream => fileoutLogs(logStream.logStreamName)),
+    );
+    if (nextToken === res.nextToken) {
+      break;
+    }
+    ({ nextToken } = res);
+  } while (true);
 })();
