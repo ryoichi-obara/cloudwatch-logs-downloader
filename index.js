@@ -44,9 +44,9 @@ const fileoutLogs = async (logStreamName) => {
   do {
     const res = await cloudwatchlogs.describeLogStreams({ logGroupName, nextToken }).promise();
     console.log(`--- ${res.nextToken}`);
-    await Promise.all(
-      res.logStreams.map(logStream => fileoutLogs(logStream.logStreamName)),
-    );
+    res.logStreams.forEach(async (logStream) => {
+      await fileoutLogs(logStream.logStreamName);
+    });
     if (nextToken === res.nextToken) {
       break;
     }
