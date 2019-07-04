@@ -7,14 +7,14 @@
     "url": "https://github.com/ryoichi-obara/cloudwatch-logs-downloader/issues"
   },
   "dependencies": {
-    "aws-sdk": "^2.402.0",
-    "dotenv": "^6.2.0",
-    "moment-timezone": "^0.5.23"
+    "aws-sdk": "^2.488.0",
+    "dotenv": "^8.0.0",
+    "moment-timezone": "^0.5.25"
   },
   "devDependencies": {
-    "eslint": "^5.13.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.16.0"
+    "eslint": "^6.0.1",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.0"
   },
   "homepage": "https://github.com/ryoichi-obara/cloudwatch-logs-downloader#readme",
   "keywords": [
